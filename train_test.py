@@ -513,7 +513,6 @@ if __name__ == "__main__":
     get_idf.get_idf_all_news("test", process_number)
     print("Complete !!! Get idf ...\n")
     '''
-    '''
     print("Get feature now...\n")
     train = Train()
     train.train_get_feature(process_number)
@@ -525,24 +524,22 @@ if __name__ == "__main__":
     train_df = pd.read_csv('./models/train_df.csv')
     test_df = pd.read_csv('./models/test_df.csv')
     print("Complete !!! Loading Trained And Tested CSV Data...\n")
-    '''
+
     train_test = Train_Test()
-    '''
+    
     print("Preprocessing...\n")
     train_df, test_df = train_test.prepare(train_df, test_df)
     train_test.tongji(train_df, test_df)
-    #train_df, test_df = train_test.prepare(train_df)
-    #train_test.tongji(train_df)
     print("Preprocessing... Done\n")
-    '''
+    
     print("Loading PreProcessed Trained And Tested CSV Data...\n")
     train_df = pd.read_csv('./models/train_df_prepare.csv')
     test_df = pd.read_csv('./models/test_df_prepare.csv')
     print("Complete !!! Loading PreProcessed Trained And Tested CSV Data...\n")
-    '''
+    
     cols = [col for col in train_df.columns if col not in ['tags', 'label', 'cixing', 'id', 'cixing_z_bili']]
     auc, lgb_oof_train, lgb_sub = train_test.evaluate_5_fold(train_df, test_df, cols, "test")
-    '''
+    
     auc = load("./models/auc.joblib")
     lgb_oof_train = load("./models/oof_train.joblib")
     lgb_sub = load("./models/y_test.joblib")
@@ -550,19 +547,11 @@ if __name__ == "__main__":
     print("Output...\n")
     test_df['score'] = lgb_sub
     id_ = test_df.id.unique()
-    #print(test_df['id'])
     sub = pd.DataFrame()
     sub['id'] = id_
     sub = test_df.groupby(by='id', sort = False)
-    #print(sub['id'])
     sub = sub.apply(get_keywords)
-    #print(sub['id'])
     sub.fillna('', inplace = True)
-    #sub = test_df.groupby('id').apply(get_keywords)
-
-    #sub.fillna('', inplace=True)
-    #sub = sub.apply(postprocessing, axis=1)
-    #sub = sub.apply(postprocessing)
     sub.to_csv('sub.csv', index=False)
 
     sub = pd.read_csv('sub.csv')
@@ -570,9 +559,7 @@ if __name__ == "__main__":
     process_num = "1"
     res_file = open("./results/result_"+str(process_num)+".txt",'w', newline='', encoding='utf-8')
     write = csv.writer(res_file, delimiter='"')
-    #print("length_sub_index", len(sub.index))
     for indexs in sub.index:
-        #print(sub.loc[indexs])
         ents = []
         emos = []
         if sub.loc[indexs, 'label1'] == '':
