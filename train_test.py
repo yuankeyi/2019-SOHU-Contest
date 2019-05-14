@@ -161,8 +161,8 @@ class Train_Test():
             'boosting_type': 'gbdt',
             'objective': 'binary',
             'metric': {'auc', 'binary_logloss'},
-            'learning_rate': 0.01,
-            'num_leaves': 38,
+            'learning_rate': 0.001,
+            'num_leaves': 64,
             'min_data_in_leaf': 170,
             'bagging_fraction': 0.85,
             'bagging_freq': 1,
@@ -171,6 +171,7 @@ class Train_Test():
             }
             gbm = lgb.train(params,lgb_train,num_boost_round=40000,valid_sets=lgb_eval,early_stopping_rounds=50,verbose_eval=False,)
             dump(gbm, "models/"+"gbm_"+ str(i) +".joblib")
+            #gbm = load("./models/gbm_{}.joblib".format(i))
             y_pred = gbm.predict(X_val)
             if model == "test":
                 y_test = gbm.predict(test_df.loc[:, cols])
@@ -298,6 +299,16 @@ def get_keywords(x):
             ret['score2'] = ''
         ret['score3'] = ''
     else:
+        '''
+        sort = np.argsort(score)[::-1]
+        length = len(tags)
+        for i in range(0,8):
+            ret['label{}'.format(i+1)] = ''
+        for i in range(0,length):
+            ret['label{}'.format(i+1)] = tags[sort[i]]
+            if i == 7:
+                break
+        '''
         sort = np.argsort(score)[::-1]
         ret['label1'] = tags[sort[0]]
         ret['label2'] = ''
@@ -326,7 +337,7 @@ def get_keywords(x):
                         count += 1
                     else:
                         count = 4
-                 '''
+                '''
             temp.append(tags[sort[i]])
         ## 这部分主要是sort，不影响最后输出txt
         ret['score1'] = score[sort[0]]
@@ -350,6 +361,11 @@ def postprocessing(x):
     x['label1'] = x['label1'].replace(',', '，')
     x['label2'] = x['label2'].replace(',', '，')
     x['label3'] = x['label3'].replace(',', '，')
+    x['label4'] = x['label4'].replace(',', '，')
+    x['label5'] = x['label5'].replace(',', '，')
+    x['label6'] = x['label6'].replace(',', '，')
+    x['label7'] = x['label7'].replace(',', '，')
+    x['label8'] = x['label8'].replace(',', '，')
     return x
 
 class Get_idf():
@@ -365,7 +381,7 @@ class Get_idf():
         for news in tqdm(news_list):
             fea_ents = feature_ents()
             news = fea_ents.process_sentence(news)
-            text = 30*(news['title']+'。') + 3*(news['first_sentence']+'。') + 1*(news['other_sentence']+'。')+\
+            text = 25*(news['title']+'。') + 8*(news['first_sentence']+'。') + 1*(news['other_sentence']+'。')+\
             3*(news['last_sentence']+'。')
             jieba_tags = jieba.analyse.extract_tags(sentence=text, topK=40, allowPOS=('r','m','d', 'p', 'q', 'ad', 'u', 'f'))
             #print(jieba_tags)
@@ -490,13 +506,13 @@ if __name__ == "__main__":
     jieba.analyse.set_stop_words('./data/stopwords.txt')
    
     process_number = 50
-    
     '''
     print("\nGet idf now...\n")
     get_idf = Get_idf()
     get_idf.get_idf_all_news("train", process_number)
     get_idf.get_idf_all_news("test", process_number)
     print("Complete !!! Get idf ...\n")
+    '''
     '''
     print("Get feature now...\n")
     train = Train()
@@ -509,24 +525,24 @@ if __name__ == "__main__":
     train_df = pd.read_csv('./models/train_df.csv')
     test_df = pd.read_csv('./models/test_df.csv')
     print("Complete !!! Loading Trained And Tested CSV Data...\n")
-    
+    '''
     train_test = Train_Test()
-    
+    '''
     print("Preprocessing...\n")
-    #train_df, test_df = train_test.prepare(train_df, test_df)
-    #train_test.tongji(train_df, test_df)
-    train_df, test_df = train_test.prepare(train_df)
-    train_test.tongji(train_df)
+    train_df, test_df = train_test.prepare(train_df, test_df)
+    train_test.tongji(train_df, test_df)
+    #train_df, test_df = train_test.prepare(train_df)
+    #train_test.tongji(train_df)
     print("Preprocessing... Done\n")
-    
+    '''
     print("Loading PreProcessed Trained And Tested CSV Data...\n")
     train_df = pd.read_csv('./models/train_df_prepare.csv')
     test_df = pd.read_csv('./models/test_df_prepare.csv')
     print("Complete !!! Loading PreProcessed Trained And Tested CSV Data...\n")
-    
+    '''
     cols = [col for col in train_df.columns if col not in ['tags', 'label', 'cixing', 'id', 'cixing_z_bili']]
     auc, lgb_oof_train, lgb_sub = train_test.evaluate_5_fold(train_df, test_df, cols, "test")
-    
+    '''
     auc = load("./models/auc.joblib")
     lgb_oof_train = load("./models/oof_train.joblib")
     lgb_sub = load("./models/y_test.joblib")
@@ -544,11 +560,11 @@ if __name__ == "__main__":
     sub.fillna('', inplace = True)
     #sub = test_df.groupby('id').apply(get_keywords)
 
-    sub.fillna('', inplace=True)
-    sub = sub.apply(postprocessing, axis=1)
+    #sub.fillna('', inplace=True)
+    #sub = sub.apply(postprocessing, axis=1)
+    #sub = sub.apply(postprocessing)
     sub.to_csv('sub.csv', index=False)
 
-    
     sub = pd.read_csv('sub.csv')
     sub.fillna('', inplace = True)
     process_num = "1"
@@ -578,4 +594,3 @@ if __name__ == "__main__":
         row = ['{}\t{}\t{}'.format(sub.loc[indexs,'id'], ','.join(ents), ','.join(emos))]
         write.writerow(row)
     print('Done.\n')
-    

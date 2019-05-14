@@ -84,8 +84,10 @@ class feature_ents():
     def load_sentence(self, news):
         #jieba.load_userdict('./data/nerDict.txt')
         # 按标题、首句、其他句和末句按不同权重组合在一起，并先计算tfidf值。
-        text = 30*(news['title']+'。') + 3*(news['first_sentence']+'。') + 1*(news['other_sentence']+'。')+\
-            3*(news['last_sentence']+'。')
+        all_docs_reg = re.findall(r"《(.+?)》",news['first_sentence'])
+        first_sentence_reg = ' '.join(all_docs_reg)
+        text = 25*(news['title']+'。') + 5*(news['first_sentence']+'。') + 1*(news['other_sentence']+'。')+\
+            3*(news['last_sentence']+'。')+8*first_sentence_reg
         #jieba_tags = jieba.analyse.extract_tags(sentence = text, topK= 20, allowPOS=('r','m','d','p','ad','u','f','l'),withWeight = True, withFlag = True)
         #jieba_tags = jieba.analyse.extract_tags(sentence = text, topK= 40, allowPOS = ('x', 'nz', 'l', 'n', 'v', 'ns', 'j', 'a', 'vn', 'nr', 'eng', 'nrt','t', 'z', 'i', 'b', 'o', 'nt', 'vd', 'c', 's', 'mq', 'rz','e', 'y', 'an', 'rr'),withWeight = True, withFlag = True)
         #print("jieba", jieba_tags)
@@ -268,6 +270,14 @@ class feature_ents():
         return has_english
     
     # 11. 是否为电视作品名称（待补）
+    def in_TV(self, new_tags, TV):
+        is_TV = []
+        for tag in new_tags:
+            if tag in TV:
+                is_TV.append(1)
+            else:
+                is_TV.append(0)
+        return is_TV
     
     # 12. idf：永轩联机跑出的逆词频（待补）
     def cal_idf(self, idf, new_tags):
@@ -470,6 +480,10 @@ class feature_ents():
         ######################### 调用函数获得特征 ##############################
         news = self.clean_sentence(news)
         news = self.process_sentence(news)
+        TV = []
+        with open('./字典/出现的作品名字.txt', 'r', encoding='utf-8') as f:
+            for word in f.readlines():
+                TV.append(word.strip())
         num_sentences, num_words, new_tags, new_weight, new_cixing, \
             len_tags, words, text= self.load_sentence(news)
         #print(num_sentences, num_words, new_tags, new_weight, new_cixing, len_tags)
@@ -484,6 +498,7 @@ class feature_ents():
         head_frequency , head_words = self.head_text_frequency(new_tags, words)
         has_number = self.has_number(new_tags)
         has_english = self.has_english(new_tags)
+        is_TV = self.in_TV(new_tags, TV)
         mean_tag_sentence_length, max_tag_sentence_length, min_tag_sentence_length =\
             self.tag_sentence_length(new_tags, words)
         #v_idf = self.cal_idf(idf, new_tags)
@@ -522,7 +537,7 @@ class feature_ents():
         feature['pr'] = text_frequency / text_frequency.sum()
         feature['has_num'] = has_number
         feature['has_english'] = has_english
-        #feature['is_TV'] = is_TV
+        feature['is_TV'] = is_TV
         #feature['idf'] = v_idf
         feature['sim'] = sim
         feature['sim_euc'] = sim_euc
