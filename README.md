@@ -47,13 +47,13 @@ news = {"newsId":"0xabcd", "title": "It is good", "content": "xxxxxxxx"}
 
 3. `models/`:存放LGBM决策树跑出的结果，缓存到`.joblib`中。以及有2个含目标分词的以及其特征值的`.csv`文件
 
-4. `results`：存放结果
+4. `results/`：存放结果
 
-5. `vecmodels`: 存放了3样东西：100维的Doc2Vec，100维的Word2Vec，256维的Word2Vec。具体看文件名很好分辨
+5. `vecmodels/`: 存放了3样东西：100维的Doc2Vec，100维的Word2Vec，256维的Word2Vec。具体看文件名很好分辨
 
-6. `字典`：存放用户的各种自定义分词词典
+6. `字典/`：存放用户的各种自定义分词词典
 
-7. `sub.csc`:存的是每条新闻对应的分词，以及分词所对应的score值
+7. `sub.csv`:存的是每条新闻对应的分词，以及分词所对应的score值
 
 8. `feature_ents.py`：特征工程。根据每条新闻，去对应计算特征值。其中，计算的特征有：
 ```
